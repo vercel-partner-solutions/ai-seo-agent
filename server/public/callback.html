@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Deployment Complete</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: #fff;
+    }
+    .container {
+      text-align: center;
+      padding: 2rem;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      backdrop-filter: blur(10px);
+      max-width: 400px;
+    }
+    .icon {
+      font-size: 4rem;
+      margin-bottom: 1rem;
+    }
+    h1 {
+      font-size: 1.5rem;
+      margin-bottom: 0.5rem;
+    }
+    p {
+      opacity: 0.9;
+      font-size: 0.95rem;
+      line-height: 1.5;
+    }
+    .closing {
+      margin-top: 1.5rem;
+      font-size: 0.85rem;
+      opacity: 0.7;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="icon" id="icon"></div>
+    <h1 id="title"></h1>
+    <p id="message"></p>
+    <p class="closing">This window will close automatically...</p>
+  </div>
+  <script>
+    (function() {
+      const params = new URLSearchParams(window.location.search);
+
+      const deploymentUrl = params.get('deployment-url');
+      const projectName = params.get('project-name');
+      const isSuccess = Boolean(deploymentUrl);
+
+      document.getElementById('icon').textContent = isSuccess ? '✓' : '✕';
+      document.getElementById('title').textContent = isSuccess ? 'Deployment Complete' : 'Deployment Cancelled';
+      document.getElementById('message').textContent = isSuccess
+        ? 'Your project "' + (projectName || 'Unknown') + '" has been deployed successfully.'
+        : 'The deployment was cancelled or failed.';
+
+      if (window.opener) {
+        try {
+          window.opener.postMessage({
+            type: 'VERCEL_DEPLOY_COMPLETE',
+            data: {
+              deploymentUrl: params.get('deployment-url'),
+              projectDashboardUrl: params.get('project-dashboard-url'),
+              deploymentInspectionUrl: params.get('deployment-inspection-url'),
+              repositoryUrl: params.get('repository-url'),
+              projectName: params.get('project-name'),
+              productionDeployHookUrl: params.get('production-deploy-hook-url')
+            }
+          }, '*');
+        } catch (e) {
+          console.error('Failed to send postMessage:', e);
+        }
+      }
+
+      setTimeout(function() {
+        window.close();
+      }, 2000);
+    })();
+  </script>
+</body>
+</html>
