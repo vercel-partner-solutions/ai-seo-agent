@@ -375,7 +375,7 @@
                         <span class="code-title">Example Request</span>
                     </div>
                     <div class="code-content">
-                        <pre><span class="cmd">curl</span> <span class="flag">-X</span> POST http://localhost:3000/api/analyze <span class="flag">\
+                        <pre><span class="cmd">curl</span> <span class="flag">-X</span> POST <span class="string">"http://localhost:3000/api/analyze?agent-secret=your-secret"</span> <span class="flag">\
   -H</span> <span class="string">"Content-Type: application/json"</span> <span class="flag">\
   -d</span> <span class="string">'{"content": "Your content to analyze..."}'</span></pre>
                     </div>

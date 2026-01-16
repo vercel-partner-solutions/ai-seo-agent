@@ -47,6 +47,24 @@ interface AnalyzeRequest {
 export default defineEventHandler(async (event): Promise<AnalyzeResponse> => {
   const config = useRuntimeConfig(event);
 
+  const agentSecret = config.agentSecret || process.env.AGENT_SECRET;
+  const query = getQuery(event);
+  const providedSecret = query["agent-secret"];
+
+  if (!agentSecret) {
+    throw createError({
+      statusCode: 500,
+      message: "AGENT_SECRET not configured",
+    });
+  }
+
+  if (!providedSecret || providedSecret !== agentSecret) {
+    throw createError({
+      statusCode: 401,
+      message: "Invalid or missing agent secret",
+    });
+  }
+
   const apiKey = config.aiGatewayApiKey || process.env.AI_GATEWAY_API_KEY;
 
   if (!apiKey) {
@@ -80,7 +98,7 @@ export default defineEventHandler(async (event): Promise<AnalyzeResponse> => {
   try {
     // Phase 1: Research with Perplexity Search tool
     const research = await generateText({
-      model: gateway("anthropic/claude-sonnet-4"),
+      model: gateway("anthropic/claude-opus-4.5"),
       system: `You are an AI SEO analyst. Your job is to research content freshness and novelty.
 
 When given content to analyze:
@@ -134,7 +152,7 @@ Research the key topics, claims, and statistics mentioned. Find recent authorita
 
     // Phase 2: Generate structured analysis using the research
     const { object } = await generateObject({
-      model: gateway("anthropic/claude-sonnet-4"),
+      model: gateway("anthropic/claude-opus-4.5"),
       schema: AnalyzeResponseSchema,
       system: `You are an AI SEO analyst generating structured recommendations.
 

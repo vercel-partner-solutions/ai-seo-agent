@@ -9,5 +9,6 @@ export default defineNitroConfig({
   ],
   runtimeConfig: {
     aiGatewayApiKey: process.env.AI_GATEWAY_API_KEY ?? "",
+    agentSecret: process.env.AGENT_SECRET ?? "",
   },
 })
