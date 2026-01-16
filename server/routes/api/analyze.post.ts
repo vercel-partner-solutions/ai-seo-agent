@@ -1,123 +1,192 @@
+import { generateText, generateObject } from "ai";
+import { createGateway } from "@ai-sdk/gateway";
+import { z } from "zod";
+
+const SuggestionSchema = z.object({
+  title: z
+    .string()
+    .describe(
+      "Brief, actionable title for the suggestion (e.g., 'Update statistics to 2024 data')",
+    ),
+  impact: z
+    .enum(["high", "medium", "low"])
+    .describe(
+      "Impact level: high = critical for SEO/freshness, medium = recommended, low = nice to have",
+    ),
+  recommendation: z
+    .string()
+    .describe(
+      "Detailed recommendation explaining what to change and why it improves the content",
+    ),
+});
+
+const AnalyzeResponseSchema = z.object({
+  contentScore: z
+    .number()
+    .min(0)
+    .max(100)
+    .describe(
+      "Overall content quality score from 0-100 based on freshness, novelty, and readability",
+    ),
+  suggestions: z
+    .array(SuggestionSchema)
+    .describe(
+      "List of actionable suggestions to improve content freshness, novelty, and engagement",
+    ),
+  sources: z
+    .array(z.string())
+    .describe("URLs of authoritative sources referenced during analysis"),
+});
+
+type AnalyzeResponse = z.infer<typeof AnalyzeResponseSchema>;
+
 interface AnalyzeRequest {
-  fields: Record<string, string>
-}
-
-interface Issue {
-  type: string
-  message: string
-  severity: 'low' | 'medium' | 'high'
-}
-
-interface Suggestion {
-  field: string
-  original: string
-  suggested: string
-  reason: string
-}
-
-interface AnalyzeResponse {
-  score: number
-  issues: Issue[]
-  suggestions: Suggestion[]
+  content: string;
 }
 
 export default defineEventHandler(async (event): Promise<AnalyzeResponse> => {
-  const body = await readBody<AnalyzeRequest>(event)
+  const config = useRuntimeConfig(event);
 
-  if (!body?.fields) {
+  // Debug: Check if API key is loaded
+  const apiKey = config.aiGatewayApiKey || process.env.AI_GATEWAY_API_KEY;
+  console.log("API Key loaded:", apiKey ? `${apiKey.slice(0, 10)}...` : "NOT FOUND");
+
+  if (!apiKey) {
+    throw createError({
+      statusCode: 500,
+      message: "AI_GATEWAY_API_KEY not configured",
+    });
+  }
+
+  const gateway = createGateway({
+    apiKey,
+  });
+
+  const body = await readBody<AnalyzeRequest>(event);
+
+  if (!body?.content || typeof body.content !== "string") {
     throw createError({
       statusCode: 400,
-      message: 'Missing required field: fields'
-    })
+      message: "Missing required field: content (string)",
+    });
   }
 
-  // Simulate processing delay
-  await new Promise((resolve) => setTimeout(resolve, 800))
-
-  const issues: Issue[] = []
-  const suggestions: Suggestion[] = []
-  let score = 100
-
-  // Check if we have any content to analyze
-  const fieldEntries = Object.entries(body.fields)
-  if (fieldEntries.length === 0) {
-    return {
-      score: 0,
-      issues: [{
-        type: 'no-content',
-        message: 'No Rich Text fields found to analyze',
-        severity: 'high',
-      }],
-      suggestions: [],
-    }
+  const content = body.content.trim();
+  if (content.length === 0) {
+    throw createError({
+      statusCode: 400,
+      message: "Content cannot be empty",
+    });
   }
 
-  // Analyze each field
-  for (const [fieldId, content] of fieldEntries) {
-    if (!content || content.trim().length === 0) {
-      issues.push({
-        type: 'empty-field',
-        message: `Field "${fieldId}" is empty`,
-        severity: 'medium',
-      })
-      score -= 15
-      continue
-    }
+  try {
+    // Phase 1: Research with Perplexity Search tool
+    const research = await generateText({
+      model: gateway("anthropic/claude-sonnet-4"),
+      system: `You are an AI SEO analyst. Your job is to research content freshness and novelty.
 
-    const wordCount = content.split(/\s+/).filter(Boolean).length
+When given content to analyze:
+1. Use the perplexity_search tool to find recent articles on the same topics
+2. Search for competing content to assess how novel/unique this content is
+3. Look for authoritative sources that could improve the content
+4. Note any outdated information, statistics, or claims that need updating
 
-    // Check content length
-    if (wordCount < 50) {
-      issues.push({
-        type: 'short-content',
-        message: `Field "${fieldId}" has only ${wordCount} words. Consider adding more detail.`,
-        severity: 'medium',
-      })
-      score -= 10
-    }
+Be thorough in your research - make multiple searches to cover different aspects of the content.`,
+      prompt: `Analyze this content for freshness, novelty, and SEO quality. Search for recent related content and competing articles to assess how up-to-date and unique this content is:
 
-    // Check for common issues
-    if (content.toLowerCase().includes('click here')) {
-      issues.push({
-        type: 'vague-cta',
-        message: `Field "${fieldId}": Avoid vague link text like "click here"`,
-        severity: 'low',
-      })
-      score -= 5
-    }
+---
+${content}
+---
 
-    // Check for passive voice indicators (simple heuristic)
-    const passivePatterns = /\b(was|were|been|being|is|are)\s+\w+ed\b/gi
-    const passiveMatches = content.match(passivePatterns)
-    if (passiveMatches && passiveMatches.length > 3) {
-      issues.push({
-        type: 'passive-voice',
-        message: `Field "${fieldId}": Consider using more active voice`,
-        severity: 'low',
-      })
-      score -= 5
-    }
+Research the key topics, claims, and statistics mentioned. Find recent authoritative sources on these topics.`,
+      tools: {
+        perplexity_search: gateway.tools.perplexitySearch({
+          maxResults: 5,
+          searchRecencyFilter: "month",
+        }),
+      },
+      maxSteps: 5,
+    });
 
-    // Generate a mock suggestion
-    if (wordCount >= 20) {
-      const firstSentence = content.split(/[.!?]/)[0]
-      if (firstSentence && firstSentence.length > 10) {
-        suggestions.push({
-          field: fieldId,
-          original: firstSentence.slice(0, 60) + (firstSentence.length > 60 ? '...' : ''),
-          suggested: `**Key Point:** ${firstSentence.slice(0, 60)}...`,
-          reason: 'Adding emphasis to opening statements improves engagement',
-        })
+    // Extract source URLs from tool results if available
+    const sourceUrls: string[] = [];
+    if (research.steps) {
+      for (const step of research.steps) {
+        if (step.toolResults) {
+          for (const result of step.toolResults) {
+            if (result.result && typeof result.result === "object") {
+              const resultObj = result.result as Record<string, unknown>;
+              if (Array.isArray(resultObj.results)) {
+                for (const r of resultObj.results) {
+                  if (
+                    r &&
+                    typeof r === "object" &&
+                    "url" in r &&
+                    typeof r.url === "string"
+                  ) {
+                    sourceUrls.push(r.url);
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     }
-  }
 
-  // Ensure score stays within bounds
-  score = Math.max(0, Math.min(100, score))
+    // Phase 2: Generate structured analysis using the research
+    const { object } = await generateObject({
+      model: gateway("anthropic/claude-sonnet-4"),
+      schema: AnalyzeResponseSchema,
+      system: `You are an AI SEO analyst generating structured recommendations.
 
-  return {
-    score,
-    issues,
-    suggestions,
+Based on research results, provide:
+1. A contentScore (0-100) reflecting:
+   - Freshness: Is the content up-to-date? Are statistics/claims current?
+   - Novelty: Does it offer unique insights vs existing content?
+   - Readability: Is it well-structured and engaging?
+
+2. Specific suggestions with:
+   - Clear, actionable titles
+   - Impact levels (high/medium/low)
+   - Detailed recommendations explaining what to change and why
+
+3. Source URLs from the research that support your recommendations`,
+      prompt: `Based on this research about the content:
+
+${research.text}
+
+Original content analyzed:
+---
+${content.slice(0, 2000)}${content.length > 2000 ? "..." : ""}
+---
+
+Generate a comprehensive SEO analysis with a content score, actionable suggestions, and source URLs.
+
+Consider:
+- Is the content up-to-date compared to recent articles on the topic?
+- Does it offer unique value vs competing content?
+- Are there outdated statistics or claims that need updating?
+- How can readability and engagement be improved?
+
+${sourceUrls.length > 0 ? `\nAvailable source URLs from research:\n${sourceUrls.join("\n")}` : ""}`,
+    });
+
+    return object;
+  } catch (error) {
+    console.error("AI analysis error:", error);
+
+    // Return a graceful error response
+    if (error instanceof Error && error.message.includes("API")) {
+      throw createError({
+        statusCode: 503,
+        message: "AI service temporarily unavailable. Please try again.",
+      });
+    }
+
+    throw createError({
+      statusCode: 500,
+      message: "Failed to analyze content. Please try again.",
+    });
   }
-})
+});
