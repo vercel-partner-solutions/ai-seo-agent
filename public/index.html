@@ -1,0 +1,413 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Nitro Content Agent</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap"
+            rel="stylesheet"
+        />
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            body {
+                font-family:
+                    "Geist",
+                    -apple-system,
+                    BlinkMacSystemFont,
+                    "Segoe UI",
+                    Roboto,
+                    sans-serif;
+                background: #000;
+                min-height: 100vh;
+                color: #ededed;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                padding: 2rem;
+            }
+
+            .container {
+                max-width: 680px;
+                text-align: center;
+            }
+
+            .logo {
+                margin-bottom: 2rem;
+            }
+
+            .logo svg {
+                width: 56px;
+                height: 56px;
+            }
+
+            h1 {
+                font-size: 3rem;
+                font-weight: 700;
+                color: #fff;
+                margin-bottom: 1.5rem;
+                line-height: 1.1;
+                letter-spacing: -0.02em;
+            }
+
+            .subtitle {
+                font-size: 1.125rem;
+                color: #888;
+                line-height: 1.7;
+                margin-bottom: 3rem;
+            }
+
+            .highlight {
+                color: #ededed;
+                text-decoration: none;
+            }
+
+            .highlight:hover {
+                text-decoration: underline;
+            }
+
+            .nitro-link {
+                display: inline;
+            }
+
+            .nitro-link svg {
+                width: 1.1em;
+                height: 1.1em;
+                vertical-align: -0.15em;
+                margin-right: 0.15em;
+            }
+
+            .api-section {
+                background: #0a0a0a;
+                border: 1px solid #1a1a1a;
+                border-radius: 12px;
+                padding: 1.5rem;
+                margin-bottom: 3rem;
+                text-align: left;
+            }
+
+            .api-header {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                margin-bottom: 1rem;
+            }
+
+            .api-label {
+                font-size: 0.75rem;
+                font-weight: 500;
+                color: #666;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+            }
+
+            .api-endpoint {
+                font-family: "Geist Mono", monospace;
+                font-size: 0.875rem;
+                color: #ededed;
+                background: #171717;
+                padding: 0.25rem 0.5rem;
+                border-radius: 4px;
+            }
+
+            .code-block {
+                background: #0a0a0a;
+                border-radius: 8px;
+                overflow: hidden;
+            }
+
+            .code-header {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 0.75rem 1rem;
+                background: #0f0f0f;
+                border-bottom: 1px solid #1a1a1a;
+            }
+
+            .code-title {
+                font-family: "Geist Mono", monospace;
+                font-size: 0.75rem;
+                color: #666;
+            }
+
+            .code-content {
+                padding: 1rem;
+                overflow-x: auto;
+            }
+
+            .code-content pre {
+                font-family: "Geist Mono", monospace;
+                font-size: 0.8125rem;
+                line-height: 1.6;
+                color: #888;
+                margin: 0;
+                white-space: pre-wrap;
+                word-break: break-all;
+            }
+
+            .code-content .cmd {
+                color: #ededed;
+            }
+
+            .code-content .flag {
+                color: #666;
+            }
+
+            .code-content .string {
+                color: #888;
+            }
+
+            footer {
+                padding-top: 2rem;
+                border-top: 1px solid #1a1a1a;
+                text-align: center;
+                width: 100%;
+                max-width: 680px;
+            }
+
+            .footer-links {
+                display: flex;
+                justify-content: center;
+                gap: 1.5rem;
+                margin-bottom: 1rem;
+            }
+
+            .footer-links a {
+                color: #666;
+                text-decoration: none;
+                font-size: 0.875rem;
+                transition: color 0.15s ease;
+            }
+
+            .footer-links a:hover {
+                color: #ededed;
+            }
+
+            .footer-vercel-link {
+                color: #ededed;
+                color: #666;
+                text-decoration: none;
+                font-size: 0.875rem;
+                transition: color 0.15s ease;
+            }
+
+            .copyright {
+                color: #444;
+                font-size: 0.8125rem;
+            }
+
+            .copyright a {
+                color: #444;
+                text-decoration: none;
+                transition: color 0.15s ease;
+            }
+
+            .copyright a:hover {
+                color: #666;
+            }
+
+            @media (max-width: 640px) {
+                h1 {
+                    font-size: 2.25rem;
+                }
+
+                .code-content pre {
+                    font-size: 0.75rem;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="logo">
+                <svg
+                    width="76"
+                    height="65"
+                    viewBox="0 0 76 65"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                >
+                    <path
+                        d="M37.5274 0L75.0548 65H0L37.5274 0Z"
+                        fill="#ffffff"
+                    />
+                </svg>
+            </div>
+
+            <h1>Content Freshness Agent</h1>
+
+            <p class="subtitle">
+                An agent built with
+                <a href="https://nitro.build" target="_blank" rel="noopener noreferrer" class="highlight nitro-link">
+                    <svg
+                        width="40"
+                        height="40"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 40 40"
+                    >
+                        <g clip-path="url(#nitro-clip)">
+                            <path
+                                fill-rule="evenodd"
+                                clip-rule="evenodd"
+                                d="M35.2166 7.02016C28.0478 -1.38317 15.4241 -2.38397 7.02077 4.78481C-1.38256 11.9536 -2.38336 24.5773 4.78542 32.9806C11.9542 41.3839 24.5779 42.3847 32.9812 35.216C41.3846 28.0472 42.3854 15.4235 35.2166 7.02016ZM25.2525 17.5175C26.0233 17.5175 26.5155 18.3527 26.1287 19.0194L26.0175 19.2111L18.4696 31.6294C18.3293 31.8602 18.0788 32.001 17.8088 32.001H17.0883C16.5946 32.001 16.2336 31.5349 16.3573 31.0569L18.4054 23.1384C18.5691 22.5053 18.0912 21.888 17.4373 21.888H14.2914C13.6375 21.888 13.1596 21.2708 13.3232 20.6377L16.4137 8.68289C16.5261 8.28056 16.8904 7.99734 17.3081 8.00208C17.3587 8.00266 17.4046 8.0035 17.4427 8.0047L20.6109 8.00465C21.217 8.00436 21.684 8.53896 21.6023 9.13949L21.5828 9.28246L20.3746 16.349C20.2702 16.9598 20.7406 17.5175 21.3603 17.5175H25.2525Z"
+                                fill="url(#nitro-gradient)"
+                            />
+                            <mask
+                                id="nitro-mask"
+                                style="mask-type: alpha"
+                                maskUnits="userSpaceOnUse"
+                                x="0"
+                                y="0"
+                                width="40"
+                                height="41"
+                            >
+                                <circle
+                                    cx="20"
+                                    cy="20.001"
+                                    r="20"
+                                    fill="url(#nitro-gradient2)"
+                                />
+                            </mask>
+                            <g mask="url(#nitro-mask)">
+                                <g filter="url(#nitro-blur)">
+                                    <path
+                                        d="M1.11145 13.4267C0.0703174 16.4179 -0.245523 19.6136 0.189923 22.7507C0.62537 25.8879 1.79965 28.8768 3.61611 31.4713C5.43256 34.0659 7.83925 36.192 10.6381 37.6746C13.4369 39.1572 16.5478 39.9538 19.7147 39.999C22.8816 40.0442 26.0139 39.3366 28.8539 37.9345C31.6939 36.5324 34.1602 34.4758 36.05 31.9341C37.9397 29.3924 39.1988 26.4383 39.7236 23.3148C40.2483 20.1914 40.0238 16.9879 39.0684 13.9682L33.2532 15.808C33.9172 17.9068 34.0732 20.1333 33.7085 22.3042C33.3438 24.4751 32.4687 26.5283 31.1552 28.2949C29.8418 30.0615 28.1276 31.4908 26.1537 32.4653C24.1799 33.4399 22.0028 33.9316 19.8017 33.9002C17.6006 33.8688 15.4384 33.3151 13.4932 32.2847C11.5479 31.2543 9.87518 29.7766 8.61269 27.9733C7.35019 26.1699 6.53403 24.0926 6.23138 21.9122C5.92873 19.7317 6.14825 17.5106 6.87187 15.4316L1.11145 13.4267Z"
+                                        fill="white"
+                                    />
+                                </g>
+                            </g>
+                        </g>
+                        <defs>
+                            <filter
+                                id="nitro-blur"
+                                x="-10"
+                                y="3.42667"
+                                width="60"
+                                height="46.5744"
+                                filterUnits="userSpaceOnUse"
+                                color-interpolation-filters="sRGB"
+                            >
+                                <feFlood
+                                    flood-opacity="0"
+                                    result="BackgroundImageFix"
+                                />
+                                <feBlend
+                                    mode="normal"
+                                    in="SourceGraphic"
+                                    in2="BackgroundImageFix"
+                                    result="shape"
+                                />
+                                <feGaussianBlur
+                                    stdDeviation="5"
+                                    result="effect1_foregroundBlur"
+                                />
+                            </filter>
+                            <radialGradient
+                                id="nitro-gradient"
+                                cx="0"
+                                cy="0"
+                                r="1"
+                                gradientUnits="userSpaceOnUse"
+                                gradientTransform="translate(4.00069 20.0004) scale(39.0007 397.71)"
+                            >
+                                <stop stop-color="#31B2F3" />
+                                <stop offset="0.473958" stop-color="#F27CEC" />
+                                <stop offset="1" stop-color="#FD6641" />
+                            </radialGradient>
+                            <radialGradient
+                                id="nitro-gradient2"
+                                cx="0"
+                                cy="0"
+                                r="1"
+                                gradientUnits="userSpaceOnUse"
+                                gradientTransform="translate(4 20.0011) scale(39 397.703)"
+                            >
+                                <stop stop-color="#F27CEC" />
+                                <stop offset="0.484375" stop-color="#31B2F3" />
+                                <stop offset="1" stop-color="#7D7573" />
+                            </radialGradient>
+                            <clipPath id="nitro-clip">
+                                <rect width="40" height="40.001" fill="white" />
+                            </clipPath>
+                        </defs>
+                    </svg>
+                    Nitro</a
+                >,
+                <a href="https://sdk.vercel.ai/docs" target="_blank" rel="noopener noreferrer" class="highlight"
+                    >Vercel AI SDK</a
+                >, and
+                <a href="https://vercel.com/docs/ai-gateway" target="_blank" rel="noopener noreferrer" class="highlight"
+                    >Vercel AI Gateway</a
+                >
+                that reviews your content and researches related web insights to
+                improve novelty and stay competitive in AI-driven search.
+            </p>
+
+            <div class="api-section">
+                <div class="api-header">
+                    <span class="api-label">API Endpoint</span>
+                    <code class="api-endpoint">POST /api/analyze</code>
+                </div>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-title">Example Request</span>
+                    </div>
+                    <div class="code-content">
+                        <pre><span class="cmd">curl</span> <span class="flag">-X</span> POST http://localhost:3000/api/analyze <span class="flag">\
+  -H</span> <span class="string">"Content-Type: application/json"</span> <span class="flag">\
+  -d</span> <span class="string">'{"fields": {"body": "Your content to analyze..."}}'</span></pre>
+                    </div>
+                </div>
+            </div>
+
+            <footer>
+                <div class="footer-links">
+                    <a
+                        href="https://nitro.build"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        >Nitro</a
+                    >
+                    <a
+                        href="https://sdk.vercel.ai/docs"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        >Vercel AI SDK</a
+                    >
+                    <a
+                        href="https://vercel.com/docs/ai-gateway"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        >Vercel AI Gateway</a
+                    >
+                </div>
+                <p class="copyright">
+                    Built by
+                    <a
+                        href="https://vercel.com"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        >▲ Vercel</a
+                    >
+                    |
+                    <a
+                        href="https://github.com/vercel/ai"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        >Source code available on GitHub</a
+                    >
+                </p>
+            </footer>
+        </div>
+    </body>
+</html>
