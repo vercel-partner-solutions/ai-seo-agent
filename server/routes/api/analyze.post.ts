@@ -47,9 +47,7 @@ interface AnalyzeRequest {
 export default defineEventHandler(async (event): Promise<AnalyzeResponse> => {
   const config = useRuntimeConfig(event);
 
-  // Debug: Check if API key is loaded
   const apiKey = config.aiGatewayApiKey || process.env.AI_GATEWAY_API_KEY;
-  console.log("API Key loaded:", apiKey ? `${apiKey.slice(0, 10)}...` : "NOT FOUND");
 
   if (!apiKey) {
     throw createError({
